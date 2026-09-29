@@ -32,7 +32,6 @@ ram.runtime = "256M"
 
 [install.domain]
 type = "domain"
-full_domain = false
 
 [install.path]
 type = "path"
