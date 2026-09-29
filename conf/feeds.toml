@@ -1,0 +1,18 @@
+# YTPod configuration. This file is preserved across upgrades.
+#
+# Add feeds through the YunoHost administration page at /admin.
+# The settings below control the default retention and download behavior.
+
+update_interval_hours = 6
+default_keep_last = 20
+audio_bitrate = "96K"
+
+# Example of a manually-created feed:
+# [[feeds]]
+# id = "example"
+# name = "Example Channel"
+# source = "https://www.youtube.com/@example/videos"
+# keep_last = 20
+# since = ""
+# artwork_url = ""
+# token = "replace-me"

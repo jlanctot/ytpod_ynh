@@ -1,0 +1,9 @@
+#!/bin/bash
+# shellcheck disable=SC1091
+source _common.sh
+
+ynh_script_progression --message="Updating YTPod URL configuration..."
+ynh_change_url_nginx_config
+ynh_config_add_systemd
+ynh_systemctl --service="$app" --action=restart
+ynh_systemctl --service=nginx --action=reload

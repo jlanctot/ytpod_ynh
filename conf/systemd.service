@@ -1,0 +1,35 @@
+[Unit]
+Description=YTPod YouTube to podcast bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__APP__
+Group=__APP__
+WorkingDirectory=__INSTALL_DIR__
+Environment=PYTHONUNBUFFERED=1
+Environment=YTPOD_CONFIG=/etc/__APP__/feeds.toml
+Environment=YTPOD_DATA=__DATA_DIR__
+Environment=YTPOD_BASE_URL=https://__DOMAIN____PATH__/
+ExecStart=__INSTALL_DIR__/venv/bin/python __INSTALL_DIR__/ytpod.py --serve --bind 127.0.0.1 --port __PORT__
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+ReadWritePaths=__DATA_DIR__ /etc/__APP__ /var/log/__APP__
+StandardOutput=append:/var/log/__APP__/__APP__.log
+StandardError=append:/var/log/__APP__/__APP__.log
+
+[Install]
+WantedBy=multi-user.target

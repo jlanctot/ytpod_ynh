@@ -1,0 +1,30 @@
+#!/bin/bash
+# shellcheck disable=SC1091
+source _common.sh
+
+ynh_script_progression --message="Configuring directories and application files..."
+
+mkdir -p "$install_dir" "$app_etc_dir" "$app_log_dir"
+cp -a ../src/. "$install_dir/"
+cp -a ../conf/feeds.toml "$app_etc_dir/feeds.toml"
+chown -R "$app:$app" "$install_dir" "$app_etc_dir" "$app_log_dir"
+chmod 0750 "$app_etc_dir"
+chmod 0640 "$app_etc_dir/feeds.toml"
+chmod 0750 "$install_dir"
+
+ynh_script_progression --message="Creating Python environment and installing yt-dlp..."
+python3 -m venv "$install_dir/venv"
+"$install_dir/venv/bin/python" -m pip install --disable-pip-version-check --no-cache-dir --upgrade pip wheel
+"$install_dir/venv/bin/python" -m pip install --disable-pip-version-check --no-cache-dir -r "$install_dir/requirements.txt"
+chown -R "$app:$app" "$install_dir/venv"
+
+ynh_script_progression --message="Initializing application secrets..."
+YTPOD_CONFIG="$app_etc_dir/feeds.toml" YTPOD_DATA="$data_dir" "$install_dir/venv/bin/python" -c 'import sys; sys.path.insert(0, sys.argv[1]); import ytpod; ytpod.ensure_secret()' "$install_dir"
+chown -R "$app:$app" "$data_dir"
+
+ynh_script_progression --message="Configuring NGINX and systemd..."
+ynh_config_add_nginx
+ynh_config_add_systemd
+ynh_config_add_logrotate
+yunohost service add "$app" --description="YouTube to podcast bridge" --log="$app_log_file"
+ynh_systemctl --service="$app" --action=start

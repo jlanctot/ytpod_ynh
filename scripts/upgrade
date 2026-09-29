@@ -1,0 +1,27 @@
+#!/bin/bash
+# shellcheck disable=SC1091
+source _common.sh
+
+ynh_script_progression --message="Stopping YTPod..."
+ynh_systemctl --service="$app" --action=stop
+
+ynh_script_progression --message="Updating application files and Python environment..."
+cp -a ../src/. "$install_dir/"
+python3 -m venv "$install_dir/venv"
+"$install_dir/venv/bin/python" -m pip install --disable-pip-version-check --no-cache-dir --upgrade pip wheel
+"$install_dir/venv/bin/python" -m pip install --disable-pip-version-check --no-cache-dir -r "$install_dir/requirements.txt"
+
+mkdir -p "$app_etc_dir" "$app_log_dir"
+if [ ! -f "$app_etc_dir/feeds.toml" ]; then
+  cp -a ../conf/feeds.toml "$app_etc_dir/feeds.toml"
+fi
+chown -R "$app:$app" "$install_dir" "$app_etc_dir" "$app_log_dir" "$data_dir"
+chmod 0750 "$app_etc_dir"
+chmod 0640 "$app_etc_dir/feeds.toml"
+
+ynh_script_progression --message="Refreshing service configuration..."
+ynh_config_add_nginx
+ynh_config_add_systemd
+ynh_config_add_logrotate
+python3 -c 'import tomllib, pathlib; tomllib.loads(pathlib.Path("'"$app_etc_dir"'/feeds.toml").read_text())'
+ynh_systemctl --service="$app" --action=start
